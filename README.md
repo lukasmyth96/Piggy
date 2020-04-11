@@ -3,7 +3,7 @@ To piggy-bank or roll? That's the decision you face when playing the the strateg
 
 ### The Rules
 
-[Pig](https://en.wikipedia.org/wiki/Pig_(dice_game) is a strategic, two-player dice game. The rules are simple - each 
+[Pig](https://en.wikipedia.org/wiki/Pig_(dice_game)) is a strategic, two-player dice game. The rules are simple - each 
 turn, a player repeatedly rolls a die until they either roll a 1 or they decide to 'hold':
 
 - If a 1 is rolled, the player looses all accumulated points in that turn and it becomes the other player's turn
