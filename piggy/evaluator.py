@@ -72,5 +72,5 @@ if __name__ == '__main__':
     p0 = Agent(initial_policy=hold_at_n_policy(target_score=100, hold_at=20))
     p1 = Agent(initial_policy=hold_at_n_policy(target_score=100, hold_at=20))
     _eval = Evaluator(env, p0, p1)
-    p0_win_rate, p1_win_rate = _eval.evaluate(num_games=100)
-    print('p0 win rate: {}  -  p1 win rate: {}'.format(p0_win_rate, p1_win_rate))
+    _p0_win_rate, _p1_win_rate = _eval.evaluate(num_games=100)
+    print('p0 win rate: {}  -  p1 win rate: {}'.format(_p0_win_rate, _p1_win_rate))
