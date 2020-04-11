@@ -1,5 +1,4 @@
 # Piggy
-To piggy-bank or roll? That's the decision you face when playing the the strategic dice game 'Pig'. The rules are simple but playing optimally is snout as easy as it may seem...
 
 ### The Rules
 
