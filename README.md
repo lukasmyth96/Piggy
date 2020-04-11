@@ -29,7 +29,7 @@ comprehension. Thankfully, given our complete understanding of the game's dynami
 [dynamic programming](https://en.wikipedia.org/wiki/Dynamic_programming) such as value iteration and policy iteration
 to compute the optimal policy. Todd Neller was the first to do this in his 2004 [paper](https://cupola.gettysburg.edu/cgi/viewcontent.cgi?article=1003&context=csfac).
 
-![Alt text](nellers_optimal_policy.png?raw=true width=50 height=50 "Visualization of the optimal policy for pig from Neller's paper")
+![Alt text](nellers_optimal_policy.png?raw=true "Visualization of the optimal policy for pig from Neller's paper")
 
 ### The Purpose of this Work
 
