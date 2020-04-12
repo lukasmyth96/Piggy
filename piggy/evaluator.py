@@ -85,5 +85,5 @@ if __name__ == '__main__':
     plt.plot(list(range(10, 100, 2)), p1_win_rates)
     plt.xlabel('hold at')
     plt.ylabel('win rate against hold at 20')
-    plt.hlines(0.5, 10, 50, linestyles='dashed')
+    plt.hlines(0.5, 10, 100, linestyles='dashed')
     plt.show()
