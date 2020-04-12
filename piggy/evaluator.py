@@ -34,7 +34,7 @@ class Evaluator:
         p1_win_rate: float
         """
         player0_wins = []  # store results as list of bools for each game indicating if p0 won
-        for _ in tqdm(range(num_games)):
+        for game_idx in tqdm(range(num_games)):
 
             game_over = False
             current_player_idx = random.randint(0, 1)  # pick random player to start
@@ -54,9 +54,11 @@ class Evaluator:
                     action = current_player.select_action(state)
                     state, reward, go_again = self.environment.take_action(state, action)
                     if reward == 1:
-                        player0_wins += (current_player_idx == 0)
+                        player0_wins.append(current_player_idx == 0)
                         game_over = True
+                        go_again = False
 
+        assert len(player0_wins) == num_games
         p0_win_rate = np.mean(player0_wins)
         p1_win_rate = 1 - p0_win_rate
 
@@ -65,12 +67,23 @@ class Evaluator:
 
 if __name__ == '__main__':
     """ testing """
+    from matplotlib import pyplot as plt
     from piggy.utils.create_policy import hold_at_n_policy
     from piggy.environment import Environment
     from piggy.agent import Agent
-    env = Environment(dice_sides=6, target_score=100)
-    p0 = Agent(initial_policy=hold_at_n_policy(target_score=100, hold_at=20))
-    p1 = Agent(initial_policy=hold_at_n_policy(target_score=100, hold_at=20))
-    _eval = Evaluator(env, p0, p1)
-    _p0_win_rate, _p1_win_rate = _eval.evaluate(num_games=100)
-    print('p0 win rate: {}  -  p1 win rate: {}'.format(_p0_win_rate, _p1_win_rate))
+    target = 100
+    p0 = Agent(initial_policy=hold_at_n_policy(target_score=target, hold_at=20))
+    env = Environment(dice_sides=6, target_score=target)
+
+    p1_win_rates = []
+    for hold_at in range(10, 100, 2):
+        p1 = Agent(initial_policy=hold_at_n_policy(target_score=target, hold_at=hold_at))
+        _eval = Evaluator(env, p0, p1)
+        _p0_win_rate, _p1_win_rate = _eval.evaluate(num_games=5000)
+        p1_win_rates.append(_p1_win_rate)
+
+    plt.plot(list(range(10, 100, 2)), p1_win_rates)
+    plt.xlabel('hold at')
+    plt.ylabel('win rate against hold at 20')
+    plt.hlines(0.5, 10, 50, linestyles='dashed')
+    plt.show()

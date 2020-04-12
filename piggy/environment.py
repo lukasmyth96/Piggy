@@ -46,7 +46,7 @@ class Environment:
         else:
             new_state = (state[0] + state[2], state[1], 0)  # add current turn score to total
 
-        reward = int(new_state[2] >= self.target_score)
+        reward = int(new_state[0] + new_state[2] >= self.target_score)
 
         return new_state, reward, go_again
 
