@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 
 from piggy.utils.common import get_all_states
@@ -47,25 +49,33 @@ class ValueIteration:
 
     def run(self):
 
-        delta = self.eps
-        while delta >= self.eps:
-            delta = 0
-            for s in self.states[::-1]:
-                old_v = self.V(s)
+        score_sum = 2 * (self.environment.target_score - 1)
+        while score_sum >= 0:
+            delta = self.eps
+            while delta >= self.eps:
+                delta = 0
+                for s in self.states[::-1]:
 
-                # If you hold - prob of winning = 1 - prob opponent winning
-                v_hold = 1 - self.V((s[1], s[0] + s[2], 0))
+                    if s[0] + s[1] < score_sum:
+                        continue
 
-                # If you roll
-                dice_sides = self.environment.dice_sides
-                v_roll = (1 / dice_sides) * ((1 - self.V((s[1], s[0], 0))) +
-                                             sum([self.V((s[0], s[1], s[2] + roll_score))
-                                                  for roll_score in range(2, dice_sides+1)]))
+                    old_v = self.V(s)
 
-                new_v = max(v_hold, v_roll)
-                self._V[s[0], s[1], s[2]] = new_v
-                delta = max(delta, abs(new_v - old_v))
-            print('delta = ', delta)
+                    # If you hold - prob of winning = 1 - prob opponent winning
+                    v_hold = 1 - self.V((s[1], s[0] + s[2], 0))
+
+                    # If you roll
+                    dice_sides = self.environment.dice_sides
+                    v_roll = (1 / dice_sides) * ((1 - self.V((s[1], s[0], 0))) +
+                                                 sum([self.V((s[0], s[1], s[2] + roll_score))
+                                                      for roll_score in range(2, dice_sides+1)]))
+
+                    new_v = max(v_hold, v_roll)
+                    self._V[s[0], s[1], s[2]] = new_v
+                    delta = max(delta, abs(new_v - old_v))
+                print('delta = ', delta)
+
+            score_sum -= 1
 
 
 if __name__ == '__main__':
