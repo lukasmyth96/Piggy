@@ -19,7 +19,7 @@ class Evaluator:
         self.environment = environment
         self.player0 = player0
         self.player1 = player1
-        self.player_num_to_player = {0: player1, 1: player1}
+        self.player_num_to_player = {0: player0, 1: player1}
 
     def evaluate(self, num_games):
         """
@@ -36,20 +36,20 @@ class Evaluator:
         player0_wins = []  # store results as list of bools for each game indicating if p0 won
         for game_idx in tqdm(range(num_games)):
 
-            game_over = False
             current_player_idx = random.randint(0, 1)  # pick random player to start
             state = (0, 0, 0)  # state from pov of current player
 
             # loop until someone wins game
+            game_over = False
             while not game_over:
 
-                # between turns switch player and make state from the new players point of view
+                # between turns switch current player and alter state to be the new players point of view
                 current_player_idx = int(not current_player_idx)  # switch player
                 current_player = self.player_num_to_player[current_player_idx]
                 state = (state[1], state[0], 0)  # switch your_score and opponents_score and set turn_score to 0
-                go_again = True  # whether it's still current players go
 
-                # loop until time to switch players because player decided to hold or rolled a 1
+                # loop until time to switch players because current player decided to hold or rolled a 1
+                go_again = True
                 while go_again:
                     action = current_player.select_action(state)
                     state, reward, go_again = self.environment.take_action(state, action)
@@ -75,15 +75,21 @@ if __name__ == '__main__':
     p0 = Agent(initial_policy=hold_at_n_policy(target_score=target, hold_at=20))
     env = Environment(dice_sides=6, target_score=target)
 
+    random.seed(30)
+
     p1_win_rates = []
-    for hold_at in range(10, 100, 2):
+    policies_to_compare = list(range(5, target+2, 5))
+    for hold_at in policies_to_compare:
         p1 = Agent(initial_policy=hold_at_n_policy(target_score=target, hold_at=hold_at))
         _eval = Evaluator(env, p0, p1)
-        _p0_win_rate, _p1_win_rate = _eval.evaluate(num_games=5000)
+        _p0_win_rate, _p1_win_rate = _eval.evaluate(num_games=10000)
         p1_win_rates.append(_p1_win_rate)
 
-    plt.plot(list(range(10, 100, 2)), p1_win_rates)
+    plt.plot(policies_to_compare, p1_win_rates)
     plt.xlabel('hold at')
     plt.ylabel('win rate against hold at 20')
-    plt.hlines(0.5, 10, 100, linestyles='dashed')
+    plt.ylim(0, 1)
+    plt.title('Average win rate of hold-at-n against hold-at-20 for n between {} and {} with target of {}'
+              .format(policies_to_compare[0], policies_to_compare[-1], target), fontsize=8)
+    plt.hlines(0.5, 10, target, linestyles='dashed')
     plt.show()

@@ -30,5 +30,5 @@ class Agent:
 
     def update_policy(self, state, new_action):
         your_score, opponent_score, turn_score = state
-        self.policy[your_score - 1, opponent_score - 1, turn_score - 1] = new_action
+        self.policy[your_score, opponent_score, turn_score] = new_action
 

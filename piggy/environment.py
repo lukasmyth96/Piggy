@@ -34,19 +34,20 @@ class Environment:
         go_again: bool
             whether it's this players go again
         """
-        go_again = False  # default value
-        if action == 1:
+        if action == 1:  # if action is to roll
             dice_roll = random.randint(1, self.dice_sides)
             if dice_roll == 1:
-                turn_score = 0
+                go_again = False
+                turn_score = 0  # rolling a 1 resets turn score to zero and transitions to other players turn
             else:
-                turn_score = state[2] + dice_roll
+                turn_score = state[2] + dice_roll  # rolling 2-6 adds that number to your turn score and you get to go again
                 go_again = True
             new_state = state[:2] + (turn_score,)
-        else:
+        else:  # action is to hold
+            go_again = False  # default value
             new_state = (state[0] + state[2], state[1], 0)  # add current turn score to total
 
-        reward = int(new_state[0] + new_state[2] >= self.target_score)
+        reward = int((new_state[0] + new_state[2]) >= self.target_score)
 
         return new_state, reward, go_again
 
