@@ -1,13 +1,14 @@
 import random
+import copy
 
 import numpy as np
 
-from piggy.utils.common import get_all_states
+from piggy.utils.common import get_all_playable_states, won, lost
 
 
 class ValueIteration:
 
-    def __init__(self, environment, eps):
+    def __init__(self, environment, eps, playing_piglet=False):
         """
         For each s∈ S, initialize V(s) arbitrarily.
         Repeat
@@ -30,61 +31,74 @@ class ValueIteration:
         environment: piggy.environment.Environment
         eps: float
             minimum max difference between V(s) between successive iterations across all states s
+        playing_piglet: bool, optional
+            affects line 67 - for pig the scoring rolls are 2-num_dice_sides but for piglet rolling a head scores
+            a 1 not a 2 (as it would if we considered a coin to be a two sided die with 1 and 2 on it)
         """
         self.environment = environment
         self.eps = eps
+        self.playing_piglet = playing_piglet
 
-        self.states = get_all_states(target_score=environment.target_score, include_winning_states=False)
-        self._V = np.random.random(size=(environment.target_score,)*3)
-
+        self.states = get_all_playable_states(target_score=environment.target_score)
+        self._V = np.random.random(size=(environment.target_score+1,)*3)
 
     def V(self, state):
-        your_score, opponents_score, turn_score = state
-        if your_score + turn_score >= self.environment.target_score:
+        if won(state, self.environment.target_score):
             return 1
-        elif opponents_score >= self.environment.target_score:
+        elif lost(state, self.environment.target_score):
             return 0
         else:
-            return self._V[your_score, opponents_score, turn_score]
+            return self._V[state[0], state[1], state[2]]
 
     def run(self):
 
-        score_sum = 2 * (self.environment.target_score - 1)
-        while score_sum >= 0:
-            delta = self.eps
-            while delta >= self.eps:
-                delta = 0
-                for s in self.states[::-1]:
+        delta = self.eps
+        while delta >= self.eps:
+            delta = 0
+            for s in self.states:
 
-                    if s[0] + s[1] < score_sum:
-                        continue
+                old_v = self.V(s)
 
-                    old_v = self.V(s)
+                # If you hold - prob of winning = 1 - prob opponent winning
+                v_hold = 1 - self.V((s[1], s[0] + s[2], 0))
 
-                    # If you hold - prob of winning = 1 - prob opponent winning
-                    v_hold = 1 - self.V((s[1], s[0] + s[2], 0))
+                # If you roll
+                dice_sides = self.environment.dice_sides
+                # Line below is to account for fact that piglet you score 1 for heads rather than 2
+                scoring_rolls = list(range(1, dice_sides)) if self.playing_piglet else list(range(2, dice_sides+1))
+                v_roll = (1 / dice_sides) * ((1 - self.V((s[1], s[0], 0))) +
+                                             sum([self.V((s[0], s[1], s[2] + roll_score))
+                                                  for roll_score in scoring_rolls]))
 
-                    # If you roll
-                    dice_sides = self.environment.dice_sides
-                    v_roll = (1 / dice_sides) * ((1 - self.V((s[1], s[0], 0))) +
-                                                 sum([self.V((s[0], s[1], s[2] + roll_score))
-                                                      for roll_score in range(2, dice_sides+1)]))
+                new_v = max(v_hold, v_roll)
+                self._V[s[0], s[1], s[2]] = new_v
+                delta = max(delta, abs(new_v - old_v))
 
-                    new_v = max(v_hold, v_roll)
-                    self._V[s[0], s[1], s[2]] = new_v
-                    delta = max(delta, abs(new_v - old_v))
-                print('delta = ', delta)
+            print('max delta: {:.5f}'.format(delta))
 
-            score_sum -= 1
+    def get_state_to_value(self):
+        """
+        Returns
+        -------
+        state_to_value: dict
+        """
+        return {state: self.V(state) for state in self.states}
 
 
 if __name__ == '__main__':
     """ Testing """
     from piggy.environment import Environment
     _env = Environment(dice_sides=2, target_score=2)
-    valit = ValueIteration(environment=_env, eps=0.0001)
+
+    # This will give the WRONG result for piglet:
+    valit = ValueIteration(environment=_env, eps=0.0001, playing_piglet=False)
     valit.run()
+    print('stop here')
+
+    # This will give the CORRECT result for piglet
+    valit = ValueIteration(environment=_env, eps=0.0001, playing_piglet=True)
     valit.run()
+    print('stop here')
 
 
 
