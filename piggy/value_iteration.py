@@ -139,7 +139,7 @@ if __name__ == '__main__':
     _env = Environment(dice_sides=6, target_score=100)
 
     # This will give the CORRECT result for piglet
-    valit = ValueIteration(environment=_env, eps=0.01, playing_piglet=False)
+    valit = ValueIteration(environment=_env, eps=0.001, playing_piglet=False)
     valit.run()
     valit.save(output_dir=os.path.join(ROOT_DIR, 'experiment_results'))
     print('stop here')

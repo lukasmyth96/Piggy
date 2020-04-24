@@ -72,24 +72,13 @@ if __name__ == '__main__':
     from piggy.environment import Environment
     from piggy.agent import Agent
     target = 100
-    p0 = Agent(initial_policy=hold_at_n_policy(target_score=target, hold_at=20))
     env = Environment(dice_sides=6, target_score=target)
 
-    random.seed(30)
+    p0 = Agent(initial_policy=hold_at_n_policy(target_score=target, hold_at=20))
 
-    p1_win_rates = []
-    policies_to_compare = list(range(5, target+2, 5))
-    for hold_at in policies_to_compare:
-        p1 = Agent(initial_policy=hold_at_n_policy(target_score=target, hold_at=hold_at))
-        _eval = Evaluator(env, p0, p1)
-        _p0_win_rate, _p1_win_rate = _eval.evaluate(num_games=10000)
-        p1_win_rates.append(_p1_win_rate)
+    optimal_policy = np.load('/home/luka/PycharmProjects/Piggy/experiment_results/standard_pig_optimal_policy.npy')
+    p1 = Agent(initial_policy=optimal_policy)
 
-    plt.plot(policies_to_compare, p1_win_rates)
-    plt.xlabel('hold at')
-    plt.ylabel('win rate against hold at 20')
-    plt.ylim(0, 1)
-    plt.title('Average win rate of hold-at-n against hold-at-20 for n between {} and {} with target of {}'
-              .format(policies_to_compare[0], policies_to_compare[-1], target), fontsize=8)
-    plt.hlines(0.5, 10, target, linestyles='dashed')
-    plt.show()
+    eval = Evaluator(environment=env, player0=p0, player1=p1)
+    p0_win_rate, p1_win_rate = eval.evaluate(num_games=100000)
+    print('Optimal policy won {:.1%} of games'.format(p1_win_rate))
