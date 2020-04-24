@@ -68,14 +68,16 @@ class FixedOpponentSarsa:
         return q
 
     def run(self, episodes):
-
-        for episode in tqdm(range(episodes)):
+        progress_bar = tqdm(range(episodes))
+        for episode in progress_bar:
 
             state = (0, 0, 0)  # start of new game
 
             game_over = False
             action = 1  # always roll at start of game
             while not game_over:
+
+                progress_bar.set_description('state: {}'.format(state), refresh=True)
 
                 # Take chosen action in current state
                 new_state, reward, go_again = self.environment.take_action(state, action)
@@ -85,7 +87,7 @@ class FixedOpponentSarsa:
                 # next state in which it is our turn
                 game_lost = False
                 if not go_again and not game_won:
-                    new_state, game_lost = self.opponents_turn(state)
+                    new_state, game_lost = self.opponents_turn(new_state)
 
                 # Select action from new state
                 new_action = self.select_e_greedy_action(new_state)
@@ -121,7 +123,7 @@ class FixedOpponentSarsa:
         game_won = False
         while go_again and not game_won:
             action = self.opponent.select_action(state)
-            new_state, reward, go_again = self.environment.take_action(state, action)
+            state, reward, go_again = self.environment.take_action(state, action)
             game_won = bool(reward)
 
         # Revert back to state from pov of you
