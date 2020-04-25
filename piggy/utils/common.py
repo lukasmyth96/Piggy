@@ -9,6 +9,10 @@ def lost(state, target_score):
     return state[1] >= target_score
 
 
+def won_or_lost(state, target_score):
+    return won(state, target_score) or lost(state, target_score)
+
+
 def get_all_playable_states(target_score):
     """
     Returns a list of all playable (your_score, opponents_score, turn_score) state tuples.
