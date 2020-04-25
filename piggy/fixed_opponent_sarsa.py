@@ -1,9 +1,12 @@
+import os
 import random
 
 import numpy as np
 from tqdm import tqdm
+import tensorflow as tf
 
 from piggy.utils.common import won_or_lost
+from piggy.utils.io import create_directory_path_with_timestamp
 from piggy.evaluator import Evaluator
 from piggy.agent import Agent
 
@@ -73,7 +76,7 @@ class FixedOpponentSarsa:
             q = self._Q[s[0], s[1], s[2], a]
         return q
 
-    def run(self, episodes, evaluate_every):
+    def run(self, episodes, evaluate_every, output_dir):
         """
         Run SARSA algorithm
         Parameters
@@ -81,9 +84,13 @@ class FixedOpponentSarsa:
         episodes: int
         evaluate_every: int
             number of episodes between successive evaluations against fixed opponent
+        output_dir: str
         """
-        progress_bar = tqdm(range(episodes))
+        # Metrics
+        tensorboard_writer = tf.summary.create_file_writer(output_dir)
         latest_win_rate = 0
+
+        progress_bar = tqdm(range(episodes))
 
         for episode in progress_bar:
 
@@ -117,10 +124,13 @@ class FixedOpponentSarsa:
                 action = new_action
                 game_over = game_won or game_lost
 
-                # Periodically evaluate against fixed opponent
+                # Periodically evaluate against fixed opponent - logs written to tensorboard
                 if episode % evaluate_every == 0:
                     latest_win_rate = self.evaluate_against_fixed_opponent()
-                    progress_bar.set_description()
+                    with tensorboard_writer.as_default():
+                        tf.summary.scalar('win rate vs fixed opponent', latest_win_rate, step=episode)
+                        tf.summary.scalar('exploration rate ε', self.eps, step=episode)
+                        tf.summary.scalar('learning rate α', self.alpha, step=episode)
 
 
         # Decay eps and alpha
@@ -185,10 +195,13 @@ if __name__ == '__main__':
 
     """ Learn optimal policy against the optimal policy using SARSA """
     from piggy.environment import Environment
+    from definition import ROOT_DIR
     optimal_policy = np.load('/home/luka/PycharmProjects/Piggy/experiment_results/standard_pig_optimal_policy.npy')
     optimal_agent = Agent(initial_policy=optimal_policy)
     env = Environment(dice_sides=6, target_score=100)
-    _sarsa = FixedOpponentSarsa(environment=env, opponent=optimal_agent, eps=0.5, alpha=0.05, decay=0.99)
+    _sarsa = FixedOpponentSarsa(environment=env, opponent=optimal_agent, eps=0.25, alpha=0.05, decay=0.99)
+
+    output_dir = create_directory_path_with_timestamp(destination_dir=os.path.join(ROOT_DIR, 'experiment_results', 'fixed_opponent_sarsa'))
     _sarsa.run(episodes=10000, evaluate_every=10)
 
 
